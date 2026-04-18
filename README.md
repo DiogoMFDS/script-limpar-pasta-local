@@ -1,14 +1,21 @@
-# Template de Scripts Python
+# Script Limpar Pasta Local
 
-Este é um template básico para projetos de automação e scripts em Python. Ele fornece uma estrutura organizada para desenvolvimento rápido e manutenção fácil.
+Este é um script em Python para limpar pastas locais, removendo arquivos modificados há mais de 15 dias. Ele fornece uma estrutura organizada para automação e manutenção fácil de diretórios.
 
 ## Descrição
 
-O template inclui:
-- Estrutura modular com separação de configurações, modelos e módulos.
+O script inclui:
+- Estrutura modular com separação de configurações, bibliotecas auxiliares e módulos funcionais.
 - Configurações de ambiente virtual.
-- Logs integrados.
-- Suporte a depuração no VS Code.
+- Logs integrados para rastreamento de operações.
+- Suporte a depuração no VS Code (opcional).
+
+## Funcionalidades
+
+- Remove arquivos modificados antes de uma data limite (padrão: 15 dias atrás).
+- Analisa recursivamente subpastas.
+- Registra operações em logs para auditoria.
+- Configurável via arquivos .ini.
 
 ## Pré-requisitos
 
@@ -19,8 +26,8 @@ O template inclui:
 
 1. Clone ou baixe este repositório:
    ```bash
-   git clone https://github.com/DiogoMFDS/templateScripts.git
-   cd templateScripts
+   git clone https://github.com/DiogoMFDS/script-limpar-pasta-local.git
+   cd script-limpar-pasta-local
    ```
 
 2. Crie e ative o ambiente virtual:
@@ -39,6 +46,13 @@ O template inclui:
 
 ## Uso
 
+### Configuração
+Edite o arquivo `App/Config/init/prod.ini` para definir o caminho da pasta a ser limpa:
+```
+[CAMINHOS]
+caminho = C:\caminho\para\pasta
+```
+
 ### Execução Direta
 Execute o script principal:
 ```bash
@@ -51,19 +65,27 @@ executar.bat
 
 ### Desenvolvimento
 - Abra no VS Code.
-- Configure o depurador conforme `.vscode/launch.json`.
 - Edite os arquivos em `App/` para personalizar a lógica.
+- Configure o depurador se necessário.
 
 ### Estrutura do Projeto
 ```
-templateScripts/
-├── .vscode/           # Configurações do VS Code
+script-limpar-pasta-local/
 ├── App/               # Código principal
 │   ├── __main__.py    # Ponto de entrada
-│   ├── config/        # Configurações
-│   ├── libs/          # Bibliotecas auxiliares
-│   ├── Models/        # Modelos de dados
+│   ├── Config/        # Configurações
+│   │   ├── config_app.py
+│   │   ├── config_log.py
+│   │   ├── icon/
+│   │   └── init/
+│   │       ├── dev.ini
+│   │       └── prod.ini
+│   ├── Libs/          # Bibliotecas auxiliares
+│   │   ├── __init__.py
+│   │   └── apoio.py
 │   └── Modules/       # Módulos funcionais
+│       ├── __init__.py
+│       └── funcao.py
 ├── logs/              # Arquivos de log
 ├── executar.bat       # Script de execução para Windows
 ├── requirements.txt   # Dependências Python
@@ -72,19 +94,12 @@ templateScripts/
 
 ## Personalização
 
-- **Configurações**: Edite `App/config/config_app.py` e os arquivos `.ini` em `config/init/`.
-- **Lógica**: Adicione funções em `App/Modules/` e importe em `__main__.py`.
+- **Configurações**: Edite `App/Config/config_app.py` e os arquivos `.ini` em `App/Config/init/`.
+- **Lógica**: Adicione ou modifique funções em `App/Modules/` e importe em `__main__.py`.
 - **Dependências**: Adicione pacotes em `requirements.txt`.
-
-## Depuração
-
-Use o VS Code para depurar:
-1. Abra o projeto.
-2. Pressione F5 ou vá para Run > Start Debugging.
-3. Selecione uma configuração (Arquivo Atual ou Módulo Principal).
 
 ## Logs
 
-Os logs são salvos em `logs/`. Configure em `App/config/config_log.py`.
+Os logs são salvos em `logs/`. Configure em `App/Config/config_log.py`.
 
 
