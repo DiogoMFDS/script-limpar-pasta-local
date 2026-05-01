@@ -7,6 +7,7 @@ class ExcluirArquivos():
     def __init__(self, dias_limite: int = 15):
         self.caminho = cfg.Local.caminho
         self.data_limite = (datetime.now() - timedelta(days=dias_limite)).strftime("%d-%m-%Y")
+        cfg.log.info(f"Data limite para exclusão: {self.data_limite}")
     
     @retry
     def excluir(self, caminhos: list = None, data_limite: str = None):
