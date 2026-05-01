@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 from Libs import retry
 
 class ExcluirArquivos():
-    def __init__(self):
+    def __init__(self, dias_limite: int = 15):
         self.caminho = cfg.Local.caminho
-        self.data_limite = (datetime.now() - timedelta(days=15)).strftime("%d-%m-%Y")
+        self.data_limite = (datetime.now() - timedelta(days=dias_limite)).strftime("%d-%m-%Y")
     
     @retry
     def excluir(self, caminhos: list = None, data_limite: str = None):
