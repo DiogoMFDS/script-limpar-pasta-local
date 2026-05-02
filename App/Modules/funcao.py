@@ -80,29 +80,31 @@ class ExcluirArquivos():
 
         with open(caminho_arquivo, 'w', encoding='utf-8') as f:
             # Cabeçalho Estilizado
-            f.write("="*60 + "\n")
-            f.write("RELATÓRIO DE EXCLUSÃO DE ARQUIVOS\n")
-            f.write("="*60 + "\n\n")
+            espaco = 40
+            f.write("="*espaco + "\n")
+            f.write("*RELATÓRIO DE EXCLUSÃO DE ARQUIVOS*\n")
+            f.write("="*espaco + "\n\n")
 
             # Seção de Metadados Alinhada
-            f.write(f"{'Data do Relatório:':<30} {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
-            f.write(f"{'Data Limite para Exclusão:':<30} {self.data_limite.replace('-', '/')}\n")
-            f.write("-" * 60 + "\n")
-            f.write(f"{'Total de Arquivos Analisados:':<30} {self.total_arquivos}\n")
-            f.write(f"{'Total de Arquivos Excluídos:':<30} {len(self.arquivos_excluidos)}\n")
-            f.write("-" * 60 + "\n\n")
+            f.write(f"{'Data do Relatório:'} {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+            f.write(f"{'Data Limite para Exclusão:'} {self.data_limite.replace('-', '/')}\n")
+            f.write("-" * espaco + "\n")
+            f.write(f"{'Total de Arquivos Analisados:'} {self.total_arquivos}\n")
+            f.write(f"{'Total de Arquivos Excluídos:'} {len(self.arquivos_excluidos)}\n")
+            f.write("-" * espaco + "\n\n")
 
             # Seção de Detalhes
             f.write("DETALHAMENTO DOS ARQUIVOS:\n")
             if not self.arquivos_excluidos:
-                f.write(">>> Nenhum arquivo foi excluído no período informado.\n")
+                f.write(">>> Nenhum arquivo foi excluído.\n\n")
             else:
                 for i, arquivo in enumerate(self.arquivos_excluidos, 1):
-                    f.write(f"{arquivo}\n")
+                    f.write(f" - {arquivo}\n")
+                f.write(f"\n")
             
-            f.write("="*60 + "\n")
+            f.write("="*espaco + "\n")
             f.write("FIM DO RELATÓRIO\n")
-            f.write("="*60 + "\n")
+            f.write("="*espaco + "\n")
 
         cfg.log.info(f"Relatório de exclusão criado em: {caminho_arquivo}")
         
