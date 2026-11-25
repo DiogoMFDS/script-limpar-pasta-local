@@ -1,5 +1,6 @@
 import Config as cfg
 import os
+import shutil
 from datetime import datetime, timedelta
 from Libs import retry
 
@@ -9,8 +10,16 @@ class ExcluirArquivos():
         self.data_limite = (datetime.now() - timedelta(days=dias_limite)).strftime("%d-%m-%Y")
         self.arquivos_excluidos = []
         self.total_arquivos = 0
-        self.total_bytes_excluidos = 0  # Armazena a soma em bytes dos arquivos excluídos
+        self.total_bytes_excluidos = 0
+        self.espaco_livre_antes = None
         cfg.log.info(f"Data limite para exclusão: {self.data_limite}")
+
+    def _formatar_tamanho(self, tamanho_bytes: int) -> str:
+        """Converte bytes para MB (ou GB se for maior que 1024 MB)."""
+        megas = tamanho_bytes / (1024 * 1024)
+        if megas >= 1024:
+            return f"{megas / 1024:.2f} GB ({megas:.2f} MB)"
+        return f"{megas:.2f} MB"
 
     @retry
     def excluir(self, caminhos: list = None, data_limite: str = None):
@@ -27,6 +36,10 @@ class ExcluirArquivos():
 
         if data_limite:
             self.data_limite = data_limite
+
+        # Captura o espaço livre no disco ANTES de iniciar as exclusões
+        if self.espaco_livre_antes is None and os.path.exists(caminhos[0]):
+            self.espaco_livre_antes = shutil.disk_usage(caminhos[0]).free
 
         for caminho in caminhos:
             try:
@@ -61,9 +74,7 @@ class ExcluirArquivos():
 
                         if data_modificacao < data_limite_dt:
                             try:
-                                # Captura o tamanho em bytes ANTES de remover o arquivo
                                 tamanho_arquivo = os.path.getsize(caminho_arquivo)
-                                
                                 os.remove(caminho_arquivo)
                                 
                                 self.total_bytes_excluidos += tamanho_arquivo
@@ -80,27 +91,32 @@ class ExcluirArquivos():
             os.makedirs(pasta_caminho)
 
         caminho_arquivo = os.path.join(pasta_caminho, file)
+
+        # Mede o espaço livre atual no disco de destino dos arquivos
+        caminho_referencia = self.caminho if os.path.exists(self.caminho) else pasta_caminho
+        espaco_livre_atual = shutil.disk_usage(caminho_referencia).free
         
-        # Converte bytes para Megabytes (1 MB = 1024 * 1024 bytes)
-        total_megas = self.total_bytes_excluidos / (1024 * 1024)
+        if self.espaco_livre_antes is None:
+            self.espaco_livre_antes = espaco_livre_atual
+
+        total_megas_liberados = self.total_bytes_excluidos / (1024 * 1024)
 
         with open(caminho_arquivo, 'w', encoding='utf-8') as f:
-            # Cabeçalho Estilizado
             espaco = 40
             f.write("="*espaco + "\n")
-            f.write("*RELATÓRIO DE EXCLUSÃO DE ARQUIVOS*\n")
+            f.write("RELATÓRIO DE EXCLUSÃO DE ARQUIVOS\n")
             f.write("="*espaco + "\n\n")
 
-            # Seção de Metadados Alinhada
             f.write(f"Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
             f.write(f"Data Limite para Exclusão: {self.data_limite.replace('-', '/')}\n")
+            f.write(f"Espaço livre antes: {self._formatar_tamanho(self.espaco_livre_antes)}\n")
+            f.write(f"Espaço liberado agora: {total_megas_liberados:.2f} MB\n")
+            f.write(f"Espaço livre atual: {self._formatar_tamanho(espaco_livre_atual)}\n")
             f.write("-" * espaco + "\n")
             f.write(f"Total de Arquivos Analisados: {self.total_arquivos}\n")
             f.write(f"Total de Arquivos Excluídos: {len(self.arquivos_excluidos)}\n")
-            f.write(f"Espaço Total Liberado: {total_megas:.2f} MB\n")
             f.write("-" * espaco + "\n\n")
 
-            # Seção de Detalhes
             f.write("DETALHAMENTO DOS ARQUIVOS:\n")
             if not self.arquivos_excluidos:
                 f.write(">>> Nenhum arquivo foi excluído.\n\n")
