@@ -12,13 +12,16 @@ class ExcluirArquivos():
         self.total_arquivos = 0
         self.total_bytes_excluidos = 0
         self.espaco_livre_antes = None
+        self.total_megas_liberados = 0
+        self.total_megas_pasta = 0
+
         cfg.log.info(f"Data limite para exclusão: {self.data_limite}")
 
     def _formatar_tamanho(self, tamanho_bytes: int) -> str:
         """Converte bytes para MB (ou GB se for maior que 1024 MB)."""
         megas = tamanho_bytes / (1024 * 1024)
         if megas >= 1024:
-            return f"{megas / 1024:.2f} GB ({megas:.2f} MB)"
+            return f"{megas / 1024:.2f} GB"
         return f"{megas:.2f} MB"
 
     @retry
@@ -86,7 +89,7 @@ class ExcluirArquivos():
                             except Exception as e:
                                 cfg.log.error(f"{t*2}Erro ao excluir '{arquivo}': {e}")
 
-    def gerar_relatorio_txt(self, pasta_caminho: str = "./temp", file: str = "relatorio_exclusao.txt"):
+    def gerar_relatorio_txt(self,titulo = "RELATÓRIO DE EXCLUSÃO DE ARQUIVOS", pasta_caminho: str = "./temp", file: str = "relatorio_exclusao.txt"):
         if not os.path.exists(pasta_caminho):
             os.makedirs(pasta_caminho)
 
@@ -99,22 +102,26 @@ class ExcluirArquivos():
         if self.espaco_livre_antes is None:
             self.espaco_livre_antes = espaco_livre_atual
 
-        total_megas_liberados = self.total_bytes_excluidos / (1024 * 1024)
+        self.total_megas_liberados = self.total_bytes_excluidos / (1024 * 1024)
+        self.total_megas_pasta = sum(os.path.getsize(os.path.join(root, f)) for root, _, files in os.walk(self.caminho) for f in files) / (1024 * 1024)
 
         with open(caminho_arquivo, 'w', encoding='utf-8') as f:
             espaco = 40
             f.write("="*espaco + "\n")
-            f.write("RELATÓRIO DE EXCLUSÃO DE ARQUIVOS\n")
+            f.write(f"{titulo}\n")
             f.write("="*espaco + "\n\n")
-
             f.write(f"Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
             f.write(f"Data Limite para Exclusão: {self.data_limite.replace('-', '/')}\n")
-            f.write(f"Espaço livre antes: {self._formatar_tamanho(self.espaco_livre_antes)}\n")
-            f.write(f"Espaço liberado agora: {total_megas_liberados:.2f} MB\n")
-            f.write(f"Espaço livre atual: {self._formatar_tamanho(espaco_livre_atual)}\n")
+            f.write("-" * espaco + "\n")
+            f.write("Espaço em Disco:\n")
+            f.write(f" - Livre antes: {self._formatar_tamanho(self.espaco_livre_antes)}\n")
+            f.write(f" - Liberado agora: {self.total_megas_liberados:.2f} MB\n")
+            f.write(f" - Livre atual: {self._formatar_tamanho(espaco_livre_atual)}\n")
+            f.write(f" - Ocupado pela pasta: {self.total_megas_pasta:.2f} MB\n")
             f.write("-" * espaco + "\n")
             f.write(f"Total de Arquivos Analisados: {self.total_arquivos}\n")
             f.write(f"Total de Arquivos Excluídos: {len(self.arquivos_excluidos)}\n")
+            
             f.write("-" * espaco + "\n\n")
 
             f.write("DETALHAMENTO DOS ARQUIVOS:\n")
